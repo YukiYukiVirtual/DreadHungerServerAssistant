@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+ <head>
+  <title>ドレハン鯖立て補助ツール</title>
+  <style>
+  .centering{text-align: center;}
+  table{margin:auto;}
+  table td{vertical-align: top;}
+  #map-description{text-align:left; width: 24em; line-height: 180%; height: calc(1em * 1.8 * 5);}
+  .preview{width:4em;}
+  #result-area{width:60vw; height: 5em;}
+  </style>
+ </head>
+ <body>
+  <div class="centering">
+   <div class="map">
+    <h2>マップ</h2>
+    <table>
+     <tr>
+      <td>
+       <select id="mapname">
+       </select>
+      </td>
+      <td id="map-description"></td>
+     </tr>
+    </table>
+   </div>
+   <div class="custom">
+    <h2>カスタム</h2>
+    <table id="setting-table">
+     <tr>
+      <th>暴風雪までの日数</th><td><input id="daysbeforeblizzard" type="range" min="2" max="7" step="1" value="3"></td><td class="preview"><span id="preview-daysbeforeblizzard"></span>日</td>
+      <th>各日の時間</th><td><input id="dayminutes" type="range" min="5" max="16" step="1" value="9"></td><td class="preview"><span id="preview-dayminutes">XX</span>分</td>
+      <th>動物の攻撃力</th><td><input id="predatordamage" type="range" min="0.25" max="3" step="0.001" value="1"></td><td class="preview"><span id="preview-predatordamage">X.XXX</span>x</td>
+     </tr>
+     <tr>
+      <th>寒冷度</th><td><input id="coldintensity" type="range" min="0.25" max="3" step="0.001" value="1"></td><td class="preview"><span id="preview-coldintensity">X.XXX</span>x</td>
+      <th>空腹率</th><td><input id="hungerrate" type="range" min="0.25" max="3" step="0.001" value="1"></td><td class="preview"><span id="preview-hungerrate">X.XXX</span>x</td>
+      <th>ボイラーの燃料消費速度</th><td><input id="coalburnrate" type="range" min="0.25" max="2" step="0.001" value="1"></td><td class="preview"><span id="preview-coalburnrate">X.XXX</span>x</td>
+     </tr>
+     <tr>
+      <th>闇の傀儡の人数比</th><td><input id="thralls" type="range" min="0" max="1" step="0.01" value="0.25"></td><td class="preview"><span id="preview-thralls">X.XXX</span>x</td>
+     </tr>
+    </table>
+    <input type="button" value="作成" id="generate-button">
+   </div>
+   <div>
+    <textarea id="result-area"></textarea>
+   </div>
+  </div>
+  <script>
+  const maps = {
+    "Expanse_Persistent": {"name": "荒漠の地", "description": "無限に続くかのように見える氷山の群と多くの船を沈めてきた流氷。"},
+    "Approach_Persistent": {"name": "進入路付近", "description": "この狭い河川通路は北極圏の玄関口である。そこには巨大な氷山が立ちはだかり、かつての探検家の残骸が散乱している。ここを突破するには、強力な爆発物を見つけ出す必要がある。"},
+    "Departure_Persistent": {"name": "山頂", "description": "雪が解ける渓谷からはるか天高くそびえる頂上。この山頂には通過のための秘密が、谷には成功の鍵が隠されている!"},
+  };
+  let setting = {};
+  function setInnerHTML(id, value)
+  {
+    document.getElementById(id).innerHTML = value;
+  }
+  function setValue(id, value)
+  {
+    setInnerHTML("preview-"+id, value)
+    setting[id] = value;
+  }
+  const settingDom = document.getElementById("setting-table").querySelectorAll("input");
+  for(const inputDom of settingDom)
+  {
+    setValue(inputDom.id, inputDom.value);
+    inputDom.addEventListener("input", (e) => {
+      setValue(inputDom.id, e.target.value);
+    });
+  }
+  const mapnameDom = document.getElementById("mapname");
+  let count=0;
+  for(const key in maps)
+  {
+    const element = document.createElement("option");
+    element.textContent = maps[key].name;
+    element.value = key;
+    mapnameDom.appendChild(element);
+	count++;
+  }
+  mapnameDom.size = count;
+  setInnerHTML("map-description", maps[mapnameDom.children[0].value].description);
+  mapnameDom.addEventListener("input", (e) => {
+    setInnerHTML("map-description", maps[e.target.value].description);
+  });
+  
+  document.getElementById("generate-button").onclick = function()
+  {
+    let args = document.getElementById("mapname").value;
+    
+    for(const key in setting)
+    {
+      args += " -"+ key + " " + setting[key];
+    }
+    args += " -log";
+    setInnerHTML("result-area", args);
+  }
+  </script>
+ </body>
+</html>
